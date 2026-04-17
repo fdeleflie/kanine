@@ -12,7 +12,7 @@ import {
   Trash2, Printer, Download, Upload, FileText, 
   Database, History as HistoryIcon,
   AlertCircle, Save, Camera, ImageIcon, X,
-  Terminal, CheckCircle2, ShieldCheck, Search, Clock, FolderOpen, Settings
+  Terminal, CheckCircle2, ShieldCheck, Search, Clock, FolderOpen, Settings, Edit, Scissors
 } from 'lucide-react';
 import { Invoice, ProductInvoice, AutoBackupConfig, BackupType, BackupSchedule } from './types';
 import { createRoot } from 'react-dom/client';
@@ -48,12 +48,14 @@ const App: React.FC = () => {
   });
 
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationMsg, setMigrationMsg] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
+      setIsAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -300,6 +302,12 @@ const App: React.FC = () => {
     }
   };
 
+  const updateBaseConfig = (key: string, value: any) => {
+    const newConfig = { ...config, [key]: value };
+    setConfig(newConfig);
+    db.saveConfig(newConfig);
+  };
+
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -366,98 +374,95 @@ const App: React.FC = () => {
     }).reverse();
 
     return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-10">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-8 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm gap-4">
-        <h2 className="text-2xl font-black text-slate-800 uppercase flex items-center gap-3">
-          <FileText className="text-indigo-600" /> Historique Facturation
+    <div className="max-w-5xl mx-auto space-y-4 pb-10">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm gap-4">
+        <h2 className="text-sm font-black text-slate-800 uppercase flex items-center gap-2">
+          <FileText className="text-indigo-600" size={18} /> Factures
         </h2>
         
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
              <input 
                type="text" 
                placeholder="Rechercher..." 
-               className="pl-12 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500"
+               className="pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs text-slate-700 outline-none focus:ring-1 focus:ring-indigo-500"
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
              />
           </div>
-          <div className="flex bg-slate-100 p-1 rounded-xl">
+          <div className="flex bg-slate-100 p-0.5 rounded-lg">
             <button 
               onClick={() => setInvoiceType('grooming')}
-              className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${invoiceType === 'grooming' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-3 py-1.5 rounded-md font-bold text-[10px] uppercase transition-all ${invoiceType === 'grooming' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
             >
-              Toilettage
+              Services
             </button>
             <button 
               onClick={() => setInvoiceType('products')}
-              className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${invoiceType === 'products' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-3 py-1.5 rounded-md font-bold text-[10px] uppercase transition-all ${invoiceType === 'products' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
             >
-              Produits
+              Boutique
             </button>
           </div>
 
           <select 
             value={invoiceFilterYear} 
             onChange={(e) => setInvoiceFilterYear(parseInt(e.target.value))}
-            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs text-slate-700 outline-none"
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
-            {!years.includes(new Date().getFullYear()) && <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>}
           </select>
 
           <select 
             value={invoiceFilterMonth} 
             onChange={(e) => setInvoiceFilterMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-xs text-slate-700 outline-none"
           >
-            <option value="all">Toute l'année</option>
-            {['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'].map((m, i) => (
+            <option value="all">Tous les mois</option>
+            {['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'].map((m, i) => (
               <option key={i} value={i}>{m}</option>
             ))}
           </select>
-
-          <span className="bg-indigo-50 text-indigo-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
-            {filteredInvoices.length} Documents
-          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-2">
         {filteredInvoices.length === 0 ? (
-          <div className="text-center py-20 text-slate-400 font-medium italic">Aucune facture pour cette période.</div>
+          <div className="text-center py-10 text-slate-400 text-xs italic bg-white rounded-xl border border-dashed border-slate-200">Aucun document pour cette période.</div>
         ) : (
           filteredInvoices.map(inv => (
-          <div key={inv.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group cursor-pointer" onClick={() => invoiceType === 'grooming' ? handlePrint(inv as Invoice) : handlePrintProductInvoice(inv as any)}>
-            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                <FileText size={24} />
+          <div key={inv.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4 group cursor-pointer" onClick={() => invoiceType === 'grooming' ? handlePrint(inv as Invoice) : handlePrintProductInvoice(inv as any)}>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors">
+                <FileText size={18} />
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                   <h3 className="font-black text-slate-900 uppercase tracking-tighter">{inv.number}</h3>
-                   <span className="text-[9px] font-black bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded uppercase">{inv.paymentMethod}</span>
+                <div className="flex items-center gap-2">
+                   <h3 className="font-black text-slate-900 uppercase text-xs tracking-tight">{inv.number}</h3>
+                   <span className="text-[8px] font-black bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded uppercase">{inv.paymentMethod}</span>
                 </div>
-                <p className="text-xs text-slate-500 font-bold">Le {new Date(inv.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })} • <span className="text-indigo-600 uppercase italic font-black">{'petName' in inv ? inv.petName : inv.clientName}</span></p>
+                <p className="text-[10px] text-slate-500 font-bold">
+                  {new Date(inv.date).toLocaleDateString('fr-FR')} • 
+                  <span className="text-indigo-600 ml-1">{'petName' in inv ? inv.petName : inv.clientName}</span>
+                </p>
               </div>
             </div>
             
-            <div className="flex items-center justify-between md:justify-end gap-10 border-t md:border-t-0 pt-4 md:pt-0">
+            <div className="flex items-center gap-6">
                <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Montant TTC</p>
-                  <p className="text-2xl font-black text-slate-900">{(inv.amount || 0).toFixed(2)}€</p>
+                  <p className="text-sm font-black text-slate-900">{(inv.amount || 0).toFixed(2)}€</p>
                </div>
-               <div className="flex gap-2">
-                  <button onClick={(e) => { e.stopPropagation(); invoiceType === 'grooming' ? handlePrint(inv as Invoice) : handlePrintProductInvoice(inv as any); }} className="p-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-90" title="Imprimer / Télécharger (PDF)">
-                    <Printer size={20} />
+               <div className="flex gap-1">
+                  <button onClick={(e) => { e.stopPropagation(); invoiceType === 'grooming' ? handlePrint(inv as Invoice) : handlePrintProductInvoice(inv as any); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                    <Printer size={16} />
                   </button>
                   <button onClick={(e) => { 
                     e.stopPropagation();
                     setConfirmState({
                       isOpen: true,
-                      title: "Supprimer la facture",
-                      message: "Voulez-vous vraiment supprimer cette facture ?",
+                      title: "Supprimer",
+                      message: "Supprimer définitivement cette facture ?",
                       onConfirm: () => {
                         if (invoiceType === 'grooming') {
                           db.deleteInvoice(inv.id);
@@ -467,8 +472,8 @@ const App: React.FC = () => {
                         window.location.reload();
                       }
                     });
-                  }} className="p-4 text-red-400 hover:bg-red-50 rounded-2xl transition-all" title="Supprimer">
-                    <Trash2 size={20} />
+                  }} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all">
+                    <Trash2 size={16} />
                   </button>
                </div>
             </div>
@@ -478,6 +483,48 @@ const App: React.FC = () => {
     </div>
   );
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+          <p className="font-serif text-lg italic text-slate-400">Chargement de votre salon...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] p-12 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col items-center">
+          <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center mb-10 shadow-xl shadow-emerald-200 rotate-3">
+             <Scissors size={40} className="text-white -rotate-3" />
+          </div>
+          
+          <h1 className="font-serif text-4xl text-slate-900 italic mb-3 text-center">Ka'nine Smart</h1>
+          <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] mb-12 text-center">Smart Grooming Management</p>
+          
+          <div className="w-full space-y-6">
+            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 italic font-serif text-slate-600 text-center leading-relaxed">
+              "L'interface professionnelle dédiée aux experts du toilettage canin."
+            </div>
+
+            <button 
+              onClick={handleSignIn}
+              className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-emerald-600 transition-all shadow-xl active:scale-95 group"
+            >
+              <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
+              Se connecter avec Google
+            </button>
+          </div>
+          
+          <p className="mt-12 text-[9px] font-bold text-slate-300 uppercase tracking-widest">Version 2.5 • Édition Professionnelle</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout activeTab={activeTab} setActiveTab={(t) => { setSelectedClientId(null); setActiveTab(t); }}>
@@ -493,60 +540,59 @@ const App: React.FC = () => {
       {activeTab === 'products' && <ProductSales onPrintProductInvoice={handlePrintProductInvoice} />}
       {activeTab === 'invoices' && renderInvoicesList()}
       {activeTab === 'audit' && (
-        <div className="max-w-4xl mx-auto bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-           <h2 className="text-2xl font-black mb-10 text-slate-800 uppercase flex items-center gap-3">
-             <HistoryIcon className="text-indigo-600" /> Journal Activité
+        <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+           <h2 className="text-sm font-black mb-8 text-slate-800 uppercase flex items-center gap-2">
+             <HistoryIcon className="text-indigo-600" size={18} /> Activité
            </h2>
-           <div className="space-y-4">
+           <div className="space-y-2">
               {db.getAuditLog().map((entry: any) => (
-                <div key={entry.id} className="flex gap-6 p-5 bg-slate-50/50 rounded-3xl border border-slate-100">
-                   <div className="w-24 shrink-0 border-r border-slate-200">
-                      <p className="text-[10px] font-black text-slate-400 uppercase">{new Date(entry.timestamp).toLocaleDateString()}</p>
-                      <p className="text-xs font-bold text-slate-600">{new Date(entry.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+                <div key={entry.id} className="flex gap-4 p-3 bg-slate-50/50 rounded-xl border border-slate-100">
+                   <div className="w-20 shrink-0 border-r border-slate-200">
+                      <p className="text-[8px] font-black text-slate-400 uppercase">{new Date(entry.timestamp).toLocaleDateString()}</p>
+                      <p className="text-[10px] font-bold text-slate-600">{new Date(entry.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
                    </div>
                    <div className="flex-1">
-                      <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded uppercase mb-2 inline-block tracking-widest">{entry.action}</span>
-                      <p className="text-sm font-bold text-slate-800">{entry.details}</p>
+                      <span className="text-[8px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase mb-1 inline-block">{entry.action}</span>
+                      <p className="text-xs font-bold text-slate-800 leading-tight">{entry.details}</p>
                    </div>
-                   <div className="flex gap-2 self-start">
+                   <div className="flex gap-1 self-start">
                     {entry.undoData && (
                       <button 
                         onClick={() => {
                           setConfirmState({
                             isOpen: true,
-                            title: "Restaurer l'action",
-                            message: "Voulez-vous vraiment restaurer cette action ?",
+                            title: "Annuler",
+                            message: "Voulez-vous annuler cette action ?",
                             onConfirm: () => {
                               const success = db.undoAction(entry.id);
                               if (success === false) {
-                                setAlertState({ isOpen: true, title: "Erreur", message: "Impossible de restaurer cette action (données de restauration manquantes pour les anciennes actions)." });
+                                setAlertState({ isOpen: true, title: "Erreur", message: "Impossible de restaurer." });
                               } else {
                                 window.location.reload();
                               }
                             }
                           });
                         }}
-                        className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-xs font-bold hover:bg-amber-200 transition-all"
+                        className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-[10px] font-black uppercase tracking-tight hover:bg-amber-200 transition-all"
                       >
-                        Restaurer
+                        Undo
                       </button>
                     )}
                     <button 
                       onClick={() => {
                         setConfirmState({
                           isOpen: true,
-                          title: "Supprimer l'entrée",
-                          message: "Voulez-vous vraiment supprimer cette entrée du journal ?",
+                          title: "Supprimer",
+                          message: "Supprimer cette entrée ?",
                           onConfirm: () => {
                             db.deleteAuditLogEntry(entry.id);
                             window.location.reload();
                           }
                         });
                       }}
-                      className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-all"
-                      title="Supprimer définitivement"
+                      className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-all"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                    </div>
                 </div>
@@ -555,167 +601,110 @@ const App: React.FC = () => {
         </div>
       )}
       {activeTab === 'config' && (
-        <div className="space-y-10">
-           <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-10">
-              <div className="w-48 h-48 bg-slate-50 rounded-[2.5rem] border-4 border-white shadow-inner flex items-center justify-center overflow-hidden relative group">
-                 {config.logo ? <img src={config.logo} className="w-full h-full object-contain p-4" /> : <ImageIcon size={60} className="text-slate-200" />}
+        <div className="space-y-6">
+           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-8">
+              <div className="w-32 h-32 bg-slate-50 rounded-2xl border-2 border-white shadow-inner flex items-center justify-center overflow-hidden relative group">
+                 {config.logo ? <img src={config.logo} className="w-full h-full object-contain p-2" /> : <ImageIcon size={32} className="text-slate-200" />}
                  <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                    <Camera className="text-white" />
+                    <Camera className="text-white" size={20} />
                     <input type="file" ref={logoInputRef} onChange={handleLogoUpload} className="hidden" accept="image/*" />
                  </label>
               </div>
-              <div className="flex-1 space-y-4">
-                 <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Logo de l'entreprise</h3>
-                 <p className="text-sm text-slate-500 font-medium">Ce logo sera utilisé sur toutes vos factures PDF.</p>
-                 <button onClick={() => logoInputRef.current?.click()} className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all">Charger mon logo</button>
+              <div className="flex-1 space-y-2">
+                 <h3 className="text-sm font-black text-slate-900 uppercase">Logo Entreprise</h3>
+                 <p className="text-xs text-slate-500 font-medium">Affiché sur les factures PDF.</p>
+                 <button onClick={() => logoInputRef.current?.click()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">Parcourir</button>
               </div>
            </div>
 
-           <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
-              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter flex items-center gap-3">
-                <FileText className="text-indigo-600" /> Informations de l'entreprise
+           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-black text-slate-900 uppercase flex items-center gap-2">
+                <FileText className="text-indigo-600" size={18} /> Coordonnées
               </h3>
-              <p className="text-sm text-slate-500 font-medium mb-6">Ces informations apparaîtront sur vos factures.</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Nom commercial</label>
-                  <input type="text" value={config.companyName || ''} onChange={e => { const newConfig = {...config, companyName: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Ka'nine" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Nom et Prénom du dirigeant</label>
-                  <input type="text" value={config.ownerName || ''} onChange={e => { const newConfig = {...config, ownerName: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Karine DELEFLIE" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Numéro SIRET / SIREN</label>
-                  <input type="text" value={config.siret || ''} onChange={e => { const newConfig = {...config, siret: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: 123 456 789 00012" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Adresse</label>
-                  <input type="text" value={config.address || ''} onChange={e => { const newConfig = {...config, address: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Adresse complète" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Téléphone</label>
-                  <input type="text" value={config.phone || ''} onChange={e => { const newConfig = {...config, phone: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: 06 12 34 56 78" />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email</label>
-                  <input type="text" value={config.email || ''} onChange={e => { const newConfig = {...config, email: e.target.value}; setConfig(newConfig); db.saveConfig(newConfig); }} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: contact@kanine.fr" />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <ConfigInput label="Entreprise" value={config.companyName} onChange={(v: string) => updateBaseConfig('companyName', v)} placeholder="Ex: Ka'nine" />
+                <ConfigInput label="Gérant" value={config.ownerName} onChange={(v: string) => updateBaseConfig('ownerName', v)} placeholder="Ex: Karine D." />
+                <ConfigInput label="SIRET" value={config.siret} onChange={(v: string) => updateBaseConfig('siret', v)} placeholder="123 456 789 00012" />
+                <ConfigInput label="Adresse" value={config.address} onChange={(v: string) => updateBaseConfig('address', v)} placeholder="Ville, CP..." />
+                <ConfigInput label="Tél" value={config.phone} onChange={(v: string) => updateBaseConfig('phone', v)} placeholder="06..." />
+                <ConfigInput label="Email" value={config.email} onChange={(v: string) => updateBaseConfig('email', v)} placeholder="contact@..." />
               </div>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-              <EditableConfigSection title="Espèces" items={config.species} onUpdate={(items: string[]) => { db.updateConfigItems('species', items); setConfig(db.getConfig()); }} />
-              <EditableBreedsSection breeds={config.breeds} species={config.species} onUpdate={(breeds: Record<string, string[]>) => { const newConfig = {...config, breeds}; db.saveConfig(newConfig); setConfig(newConfig); }} />
-              <EditableConfigSection title="Types de Poil" items={config.coatTypes} onUpdate={(items: string[]) => { db.updateConfigItems('coatTypes', items); setConfig(db.getConfig()); }} />
-              <EditableConfigSection title="Particularités" items={config.particularities} onUpdate={(items: string[]) => { db.updateConfigItems('particularities', items); setConfig(db.getConfig()); }} />
-              <EditableConfigSection title="Prestations" items={config.services} onUpdate={(items: string[]) => { db.updateConfigItems('services', items); setConfig(db.getConfig()); }} />
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
+              <EditableConfigSection title="Espèces" items={config.species || []} onUpdate={(items: string[]) => { db.updateConfigItems('species', items); setConfig(db.getConfig()); }} />
+              <EditableBreedsSection breeds={config.breeds || {}} species={config.species || []} onUpdate={(breeds: Record<string, string[]>) => { const newConfig = {...config, breeds}; db.saveConfig(newConfig); setConfig(newConfig); }} />
+              <EditableConfigSection title="Poils" items={config.coatTypes || []} onUpdate={(items: string[]) => { db.updateConfigItems('coatTypes', items); setConfig(db.getConfig()); }} />
+              <EditableConfigSection title="Particularités" items={config.particularities || []} onUpdate={(items: string[]) => { db.updateConfigItems('particularities', items); setConfig(db.getConfig()); }} />
+              <EditableConfigSection title="Services" items={config.services || []} onUpdate={(items: string[]) => { db.updateConfigItems('services', items); setConfig(db.getConfig()); }} />
               <EditableProductsSection products={config.products || []} onUpdate={(items: any[]) => { db.updateConfigItems('products', items); setConfig(db.getConfig()); }} />
            </div>
         </div>
       )}
       {activeTab === 'backup' && (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20">
-          {/* Section Firebase Cloud Migration */}
-          <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12">
-               <Cloud size={200} />
-             </div>
-             
-             <div className="relative z-10 flex flex-col items-center text-center">
-                <div className={`p-4 bg-white/20 rounded-2xl mb-6 ${user ? 'text-emerald-300' : 'text-white'}`}>
-                   {user ? <Cloud size={32} /> : <CloudOff size={32} />}
+        <div className="max-w-4xl mx-auto space-y-4 pb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-4 border border-emerald-100">
+                <Download size={20} />
+              </div>
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">Export Manuel</h3>
+              <p className="text-slate-500 mb-6 text-[10px] font-bold uppercase tracking-tight">Archive JSON locale sécurisée.</p>
+              <div className="w-full space-y-2">
+                <button onClick={handleExportAll} className="w-full py-2.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
+                  <Save size={14} /> Pack complet (3 JSON)
+                </button>
+                <div className="h-px bg-slate-100 w-full my-1"></div>
+                <button onClick={() => handleFileExport('full')} className="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-2">
+                  <Save size={14} /> Full DB (.json)
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => handleFileExport('partial')} className="w-full py-2 bg-white text-emerald-600 border border-emerald-100 rounded-lg text-[9px] font-black uppercase hover:bg-emerald-50 transition-all flex items-center justify-center gap-2">
+                    Données
+                  </button>
+                  <button onClick={() => handleFileExport('photos')} className="w-full py-2 bg-white text-blue-600 border border-blue-100 rounded-lg text-[9px] font-black uppercase hover:bg-blue-50 transition-all flex items-center justify-center gap-2">
+                    Photos
+                  </button>
                 </div>
-                <h2 className="text-3xl font-black uppercase tracking-tighter mb-4 italic">Synchronisation Cloud (Firebase)</h2>
-                <p className="text-indigo-100 max-w-xl mb-10 font-medium italic">
-                   {user 
-                    ? `Connecté en tant que ${user.email}. Vos données sont maintenant synchronisées sur tous vos appareils.`
-                    : "Connectez-vous pour sauvegarder vos données en ligne et les retrouver sur tous vos appareils (Téléphone, Tablette, PC)."}
-                </p>
-
-                {!user ? (
-                   <button onClick={handleSignIn} className="bg-white text-indigo-600 px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3">
-                      <LogIn size={20} /> Se connecter avec Google
-                   </button>
-                ) : (
-                   <div className="flex flex-col items-center gap-4 w-full max-w-md">
-                      <div className="flex flex-wrap justify-center gap-4">
-                        <button 
-                          onClick={handleMigration} 
-                          disabled={isMigrating}
-                          className={`bg-emerald-500 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3 ${isMigrating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                           {isMigrating ? <RefreshCw className="animate-spin" size={20} /> : <RefreshCw size={20} />}
-                           {isMigrating ? "Migration..." : "Migrer mes données"}
-                        </button>
-                        <button onClick={handleSignOut} className="bg-indigo-900/40 text-white border border-white/20 px-8 py-5 rounded-[2rem] font-black uppercase tracking-widest hover:bg-red-500/20 hover:border-red-500/50 transition-all flex items-center gap-3 text-xs">
-                           <LogOut size={16} /> Déconnexion
-                        </button>
-                      </div>
-                      {migrationMsg && <p className="text-xs font-mono bg-black/20 p-4 rounded-xl w-full text-indigo-200 mt-4">{migrationMsg}</p>}
-                   </div>
-                )}
-             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mb-6">
-                <Download size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Sauvegarder</h3>
-              <p className="text-slate-500 mb-8 text-sm font-medium">Archivez vos données locales dans un fichier JSON sécurisé.</p>
-              <div className="w-full space-y-3">
-                <button onClick={handleExportAll} className="w-full py-4 bg-slate-800 text-white rounded-2xl font-black shadow-xl hover:bg-slate-900 transition-all flex items-center justify-center gap-3 mb-4">
-                  <Save size={20} /> Tout Sauvegarder (3 fichiers)
-                </button>
-                <div className="h-px bg-slate-100 w-full my-4"></div>
-                <button onClick={() => handleFileExport('full')} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-3">
-                  <Save size={20} /> Sauvegarde Complète
-                </button>
-                <button onClick={() => handleFileExport('partial')} className="w-full py-4 bg-white text-emerald-600 border-2 border-emerald-100 rounded-2xl font-black hover:bg-emerald-50 transition-all flex items-center justify-center gap-3">
-                  <FileText size={20} /> Sauvegarde Partielle (Données)
-                </button>
-                <button onClick={() => handleFileExport('photos')} className="w-full py-4 bg-white text-blue-600 border-2 border-blue-100 rounded-2xl font-black hover:bg-blue-50 transition-all flex items-center justify-center gap-3">
-                  <ImageIcon size={20} /> Sauvegarde Photos Uniquement
-                </button>
               </div>
             </div>
 
-            <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><Upload size={24} /></div>
-                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Restauration</h3>
+            <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100"><Upload size={18} /></div>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Importation</h3>
               </div>
-              <p className="text-slate-500 text-sm font-medium">Récupérez une base de données existante depuis un fichier .json.</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase leading-relaxed tracking-tight">Restaurez vos données depuis un fichier JSON précédemment exporté.</p>
               <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" className="hidden" />
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                disabled={isImporting}
-                className={`w-full py-5 rounded-2xl font-black flex items-center justify-center gap-3 border-2 border-dashed transition-all ${isImporting ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'}`}
-              >
-                {isImporting ? "Chargement..." : "Importer un fichier"}
-              </button>
+              <div className="flex-1 flex flex-col justify-end">
+                <button 
+                  onClick={() => fileInputRef.current?.click()} 
+                  disabled={isImporting}
+                  className={`w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 border-2 border-dashed transition-all ${isImporting ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'}`}
+                >
+                  {isImporting ? "CHRGMENT..." : "DÉPOSER JSON"}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><Clock size={24} /></div>
+          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><Clock size={18} /></div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Sauvegarde Automatique</h3>
-                  <p className="text-slate-500 text-sm font-medium">Planifiez des sauvegardes régulières en arrière-plan.</p>
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Backup Automatique</h3>
+                  <p className="text-slate-500 text-[9px] font-bold uppercase tracking-tight">Background sync vers dossier local.</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => updateAutoBackup({ enabled: !autoBackupConfig.enabled })}
-                  className={`py-3 px-6 rounded-xl font-black transition-all flex items-center justify-center gap-2 ${autoBackupConfig.enabled ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}
+                  className={`py-2 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${autoBackupConfig.enabled ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}
                 >
-                  {autoBackupConfig.enabled ? <><CheckCircle2 size={18} /> Service Actif</> : <><X size={18} /> Service Inactif</>}
+                  {autoBackupConfig.enabled ? 'ACTIF' : 'INACTIF'}
                 </button>
 
                 <button
@@ -726,63 +715,49 @@ const App: React.FC = () => {
                     const action = (hasAutoBackupDir && autoBackupPermission !== 'granted') ? 'request' : 'pick';
                     handleAutoBackupSetup(action);
                   }}
-                  className={`py-3 px-6 rounded-xl font-black transition-all flex items-center justify-center gap-2 ${hasAutoBackupDir && autoBackupPermission === 'granted' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' : 'bg-amber-50 text-amber-600 border border-amber-200'}`}
+                  className={`py-2 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${hasAutoBackupDir && autoBackupPermission === 'granted' ? 'bg-indigo-50 text-indigo-600 border border-indigo-200' : 'bg-amber-50 text-amber-600 border border-amber-200'}`}
                 >
-                  <FolderOpen size={18} />
-                  {hasAutoBackupDir && autoBackupPermission === 'granted' ? "Dossier OK" : "Dossier ?"}
+                   {hasAutoBackupDir && autoBackupPermission === 'granted' ? "DOSSIER OK" : "SÉLEC. DOSSIER"}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {[
-                { id: 'partial', label: 'Partielle (Sans Photos)', icon: <FileText size={18} />, desc: 'Données clients, rdv et factures uniquement.' },
-                { id: 'full', label: 'Complète (Tout)', icon: <Save size={18} />, desc: 'L\'intégralité de votre base de données.' },
-                { id: 'photos', label: 'Photos Uniquement', icon: <ImageIcon size={18} />, desc: 'Uniquement les fichiers images (profils et rdv).' }
+                { id: 'partial', label: 'Données', icon: <FileText size={14} /> },
+                { id: 'full', label: 'Full DB', icon: <Save size={14} /> },
+                { id: 'photos', label: 'Photos', icon: <ImageIcon size={14} /> }
               ].map((type) => {
                 const schedule = autoBackupConfig.schedules?.[type.id as BackupType] || { enabled: false, frequency: 24 };
                 return (
-                  <div key={type.id} className={`p-6 rounded-3xl border transition-all ${schedule.enabled ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-2xl ${schedule.enabled ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-400'}`}>
+                  <div key={type.id} className={`p-3 rounded-lg border transition-all ${schedule.enabled ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                       <span className={`p-1.5 rounded ${schedule.enabled ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-400'}`}>
                           {type.icon}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-slate-800 uppercase text-sm tracking-tight">{type.label}</h4>
-                          <p className="text-xs text-slate-500 font-medium">{type.desc}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fréquence</label>
-                          <select
-                            value={schedule.frequency}
-                            onChange={(e) => updateSchedule(type.id as BackupType, { frequency: parseInt(e.target.value) })}
-                            disabled={!autoBackupConfig.enabled}
-                            className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none"
-                          >
-                            <option value={4}>Toutes les 4h</option>
-                            <option value={12}>Toutes les 12h</option>
-                            <option value={24}>Tous les jours</option>
-                            <option value={48}>Tous les 2 jours</option>
-                            <option value={168}>Toutes les semaines</option>
-                          </select>
-                        </div>
-
-                        <button
+                       </span>
+                       <button
                           onClick={() => updateSchedule(type.id as BackupType, { enabled: !schedule.enabled })}
                           disabled={!autoBackupConfig.enabled}
-                          className={`mt-4 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${schedule.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}
+                          className={`px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest transition-all ${schedule.enabled ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}
                         >
-                          {schedule.enabled ? 'Activé' : 'Désactivé'}
-                        </button>
-                      </div>
+                          {schedule.enabled ? 'ON' : 'OFF'}
+                       </button>
                     </div>
+                    <h4 className="font-black text-slate-800 uppercase text-[9px] mb-1">{type.label}</h4>
+                    <select
+                      value={schedule.frequency}
+                      onChange={(e) => updateSchedule(type.id as BackupType, { frequency: parseInt(e.target.value) })}
+                      disabled={!autoBackupConfig.enabled || !schedule.enabled}
+                      className="w-full p-1 bg-slate-50 border border-slate-100 rounded text-[8px] font-black uppercase outline-none mb-2"
+                    >
+                      <option value={4}>4h</option>
+                      <option value={12}>12h</option>
+                      <option value={24}>24h</option>
+                      <option value={168}>1 sem</option>
+                    </select>
                     {schedule.enabled && schedule.lastBackup && (
-                      <p className="text-[10px] text-slate-400 mt-4 font-bold flex items-center gap-1">
-                        <Clock size={12} /> Dernier : {new Date(schedule.lastBackup).toLocaleString('fr-FR')}
+                      <p className="text-[7px] text-slate-400 font-bold uppercase tabular-nums">
+                        Sync: {new Date(schedule.lastBackup).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     )}
                   </div>
@@ -790,75 +765,63 @@ const App: React.FC = () => {
               })}
             </div>
             
-            {autoBackupConfig.enabled && !hasAutoBackupDir && (
-              <p className="text-amber-600 text-sm mt-4 font-medium flex items-center gap-2">
-                <AlertCircle size={16} /> Vous devez choisir un dossier pour activer la sauvegarde automatique.
-              </p>
-            )}
-            {autoBackupConfig.enabled && hasAutoBackupDir && autoBackupPermission !== 'granted' && (
-              <p className="text-amber-600 text-sm mt-4 font-medium flex items-center gap-2">
-                <AlertCircle size={16} /> Veuillez cliquer sur "Dossier ?" pour autoriser l'accès.
+            {autoBackupConfig.enabled && (!hasAutoBackupDir || autoBackupPermission !== 'granted') && (
+              <p className="text-amber-600 text-[9px] mt-2 font-black uppercase flex items-center gap-2 italic">
+                <AlertCircle size={10} /> Configuration du dossier requise
               </p>
             )}
 
             {window.self !== window.top && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
-                <ShieldCheck className="text-blue-600 shrink-0" size={20} />
-                <div className="space-y-1">
-                  <p className="text-blue-900 text-sm font-black uppercase tracking-tight">Mode Aperçu Détecté</p>
-                  <p className="text-blue-800 text-xs font-medium leading-relaxed">
-                    Pour configurer la sauvegarde automatique, vous devez <strong>ouvrir l'application dans un nouvel onglet</strong> (bouton en haut à droite de cet écran). Les navigateurs bloquent l'accès aux dossiers quand l'application est affichée dans un cadre (iframe).
-                  </p>
-                </div>
+              <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start gap-2">
+                <ShieldCheck className="text-blue-600 shrink-0" size={14} />
+                <p className="text-blue-800 text-[8px] font-bold uppercase leading-normal tracking-tight">
+                  <span className="font-black text-blue-900 border-b border-blue-200 mr-1">NOTE TECHNIQUE :</span> 
+                  Activez via 'Ouvrir en nouvel onglet' pour autoriser l'accès aux dossiers locaux navigateur.
+                </p>
               </div>
             )}
           </div>
 
-          {/* Console de Débogage Technique */}
           {(importLogs.length > 0 || isImporting) && (
-            <div className="bg-[#0f172a] rounded-[2.5rem] p-8 shadow-2xl border border-slate-800">
-               <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
-                  <div className="flex items-center gap-3 text-indigo-400">
-                    <Terminal size={18} />
-                    <span className="font-black text-[10px] uppercase tracking-widest">Moniteur de Synchronisation</span>
+            <div className="bg-[#0f172a] rounded-xl p-4 shadow-xl border border-slate-800">
+               <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Terminal size={12} />
+                    <span className="font-black text-[8px] uppercase tracking-[0.2em]">Live Monitoring</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isImporting ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{isImporting ? 'Travail en cours' : 'Prêt'}</span>
-                  </div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isImporting ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></div>
                </div>
-               <div className="space-y-2 font-mono text-[10px] h-48 overflow-y-auto pr-4 custom-scrollbar">
+               <div className="space-y-1 font-mono text-[9px] h-32 overflow-y-auto pr-2 custom-scrollbar tabular-nums">
                   {importLogs.map((log, idx) => (
-                    <div key={idx} className={`flex gap-3 ${log.includes('ERREUR') ? 'text-red-400 bg-red-400/5 p-2 rounded' : log.includes('SYNK') ? 'text-emerald-400' : 'text-slate-400'}`}>
-                       <span className="opacity-30">{idx + 1}.</span>
+                    <div key={idx} className={`flex gap-2 ${log.includes('ERREUR') ? 'text-red-400 bg-red-400/5 p-1 rounded' : log.includes('SYNK') ? 'text-emerald-400' : 'text-slate-400'}`}>
+                       <span className="opacity-30">{idx + 1}</span>
                        <span>{log}</span>
                     </div>
                   ))}
-                  {isImporting && <div className="text-indigo-400 italic">Traitement des métadonnées...</div>}
                </div>
             </div>
           )}
           
-          <div className="bg-red-50 p-8 rounded-[2.5rem] border border-red-100 flex flex-col md:flex-row items-center justify-between gap-6">
-             <div className="flex items-center gap-4">
-                <AlertCircle className="text-red-500" size={32} />
-                <div className="text-left">
-                   <p className="font-black text-red-900 uppercase tracking-tighter italic">Réinitialisation d'usine</p>
-                   <p className="text-xs text-red-600 font-medium">Efface tous les clients, photos et factures stockés sur cet appareil.</p>
+          <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 flex items-center justify-between gap-4">
+             <div className="flex items-center gap-3">
+                <AlertCircle className="text-red-400" size={24} />
+                <div>
+                   <p className="font-black text-red-900 uppercase text-[10px] tracking-widest italic">Hard Reset</p>
+                   <p className="text-[8px] text-red-600 font-bold uppercase tracking-tight">Efface toutes les données locales.</p>
                 </div>
              </div>
              <button onClick={() => {
                setConfirmState({
                  isOpen: true,
-                 title: "Réinitialisation d'usine",
-                 message: "Êtes-vous sûr de vouloir tout effacer ? Cette action est irréversible.",
+                 title: "Hard Reset",
+                 message: "Toutes les données seront supprimées. Confirmer ?",
                  onConfirm: () => {
                    db.resetAll();
                    window.location.reload();
                  }
                });
-             }} className="px-8 py-4 bg-white text-red-600 border border-red-200 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-sm">
-                Remise à zéro complète
+             }} className="px-4 py-2 bg-white text-red-600 border border-red-100 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
+                RAZ COMPLÈTE
              </button>
           </div>
         </div>
@@ -876,22 +839,64 @@ const App: React.FC = () => {
   );
 };
 
+const ConfigInput = ({ label, value, onChange, placeholder }: any) => (
+  <div className="space-y-1.5">
+    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">{label}</label>
+    <input 
+      type="text" 
+      value={value || ''} 
+      onChange={e => onChange(e.target.value)} 
+      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:ring-1 focus:ring-emerald-500 focus:bg-white focus:border-emerald-200 outline-none transition-all placeholder:text-slate-200" 
+      placeholder={placeholder} 
+    />
+  </div>
+);
+
 const EditableConfigSection = ({ title, items, onUpdate }: any) => {
   const [val, setVal] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editVal, setEditVal] = useState('');
+
+  const handleEditSave = (index: number) => {
+    const newItems = [...items];
+    newItems[index] = editVal;
+    onUpdate(newItems);
+    setEditingIndex(null);
+  };
+
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col min-h-[400px]">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 border-b pb-2">{title}</h3>
-      <div className="flex-1 space-y-2 mb-8 overflow-y-auto pr-2">
-        {items.map((it: string) => (
-          <div key={it} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group hover:bg-white border border-transparent hover:border-indigo-100 transition-all">
-            <span className="text-sm font-bold text-slate-800">{it}</span>
-            <button onClick={() => onUpdate(items.filter((i: string) => i !== it))} className="text-red-400 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg"><Trash2 size={14}/></button>
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[350px]">
+      <h3 className="font-serif text-lg text-slate-900 italic mb-4 border-b border-slate-50 pb-3">{title}</h3>
+      <div className="flex-1 space-y-1.5 mb-5 overflow-y-auto pr-1 custom-scrollbar">
+        {items.map((it: string, idx: number) => (
+          <div key={`${it}-${idx}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group hover:bg-white border border-transparent hover:border-emerald-100 transition-all">
+            {editingIndex === idx ? (
+              <input 
+                autoFocus 
+                value={editVal} 
+                onChange={e => setEditVal(e.target.value)} 
+                onBlur={() => handleEditSave(idx)}
+                onKeyPress={e => e.key === 'Enter' && handleEditSave(idx)}
+                className="flex-1 bg-white px-2 py-1 rounded border border-emerald-100 outline-none text-[11px] font-bold text-slate-800"
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-between min-w-0 pr-2">
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight truncate">{it}</span>
+                <button 
+                  onClick={() => { setEditingIndex(idx); setEditVal(it); }}
+                  className="p-1.5 text-slate-200 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Edit size={12} />
+                </button>
+              </div>
+            )}
+            <button onClick={() => onUpdate(items.filter((_: string, i: number) => i !== idx))} className="text-slate-100 hover:text-red-400 p-1.5 transition-colors"><Trash2 size={12}/></button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
-        <input type="text" value={val} onChange={e => setVal(e.target.value)} onKeyPress={e => e.key === 'Enter' && val && (onUpdate([...items, val]), setVal(''))} className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none" placeholder="Ajouter..." />
-        <button onClick={() => { if(val) onUpdate([...items, val]); setVal(''); }} className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg">+</button>
+      <div className="flex gap-2 pt-4 border-t border-slate-50">
+        <input type="text" value={val} onChange={e => setVal(e.target.value)} onKeyPress={e => e.key === 'Enter' && val && (onUpdate([...items, val]), setVal(''))} className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold uppercase outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all" placeholder="AJOUTER..." />
+        <button onClick={() => { if(val) onUpdate([...items, val]); setVal(''); }} className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all cursor-pointer">+</button>
       </div>
     </div>
   );
@@ -900,6 +905,8 @@ const EditableConfigSection = ({ title, items, onUpdate }: any) => {
 const EditableBreedsSection = ({ breeds, species, onUpdate }: any) => {
   const [selectedSpecies, setSelectedSpecies] = useState(species[0] || '');
   const [newBreed, setNewBreed] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editVal, setEditVal] = useState('');
 
   const handleAdd = () => {
     if (newBreed && selectedSpecies) {
@@ -909,23 +916,49 @@ const EditableBreedsSection = ({ breeds, species, onUpdate }: any) => {
     }
   };
 
+  const handleEditSave = (index: number) => {
+    const currentBreeds = [...(breeds[selectedSpecies] || [])];
+    currentBreeds[index] = editVal;
+    onUpdate({ ...breeds, [selectedSpecies]: currentBreeds });
+    setEditingIndex(null);
+  };
+
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col min-h-[400px]">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 border-b pb-2">Races</h3>
-      <select value={selectedSpecies} onChange={e => setSelectedSpecies(e.target.value)} className="w-full p-4 mb-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-slate-800">
+    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col min-h-[350px]">
+      <h3 className="font-serif text-lg text-slate-900 italic mb-4 border-b border-slate-50 pb-3">Races par espèce</h3>
+      <select value={selectedSpecies} onChange={e => setSelectedSpecies(e.target.value)} className="w-full p-3 mb-4 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold uppercase text-slate-800 outline-none focus:ring-1 focus:ring-emerald-500 transition-all">
         {species.map((s: string) => <option key={s} value={s}>{s}</option>)}
       </select>
-      <div className="flex-1 space-y-2 mb-8 overflow-y-auto pr-2">
-        {(breeds[selectedSpecies] || []).map((b: string) => (
-          <div key={b} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group hover:bg-white border border-transparent hover:border-indigo-100 transition-all">
-            <span className="text-sm font-bold text-slate-800">{b}</span>
-            <button onClick={() => onUpdate({ ...breeds, [selectedSpecies]: (breeds[selectedSpecies] || []).filter((i: string) => i !== b) })} className="text-red-400 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg"><Trash2 size={14}/></button>
+      <div className="flex-1 space-y-1.5 mb-5 overflow-y-auto pr-1 custom-scrollbar">
+        {(breeds[selectedSpecies] || []).map((b: string, idx: number) => (
+          <div key={`${b}-${idx}`} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group hover:bg-white border border-transparent hover:border-emerald-100 transition-all">
+            {editingIndex === idx ? (
+              <input 
+                autoFocus 
+                value={editVal} 
+                onChange={e => setEditVal(e.target.value)} 
+                onBlur={() => handleEditSave(idx)}
+                onKeyPress={e => e.key === 'Enter' && handleEditSave(idx)}
+                className="flex-1 bg-white px-2 py-1 rounded border border-emerald-100 outline-none text-[11px] font-bold text-slate-800"
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-between min-w-0 pr-2">
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight truncate">{b}</span>
+                <button 
+                  onClick={() => { setEditingIndex(idx); setEditVal(b); }}
+                  className="p-1.5 text-slate-200 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Edit size={12} />
+                </button>
+              </div>
+            )}
+            <button onClick={() => onUpdate({ ...breeds, [selectedSpecies]: (breeds[selectedSpecies] || []).filter((_: string, i: number) => i !== idx) })} className="text-slate-100 hover:text-red-400 p-1.5 transition-colors"><Trash2 size={12}/></button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
-        <input type="text" value={newBreed} onChange={e => setNewBreed(e.target.value)} className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none" placeholder="Ajouter race..." />
-        <button onClick={handleAdd} className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg">+</button>
+      <div className="flex gap-2 pt-4 border-t border-slate-50">
+        <input type="text" value={newBreed} onChange={e => setNewBreed(e.target.value)} onKeyPress={e => e.key === 'Enter' && newBreed && handleAdd()} className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold uppercase outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all" placeholder="RACE..." />
+        <button onClick={handleAdd} className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all cursor-pointer">+</button>
       </div>
     </div>
   );
@@ -934,6 +967,9 @@ const EditableBreedsSection = ({ breeds, species, onUpdate }: any) => {
 const EditableProductsSection = ({ products, onUpdate }: any) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPrice, setEditPrice] = useState('');
 
   const handleAdd = () => {
     if (name && price) {
@@ -948,24 +984,46 @@ const EditableProductsSection = ({ products, onUpdate }: any) => {
     }
   };
 
+  const handleEditSave = (id: string) => {
+    const newProducts = products.map((p: any) => p.id === id ? { ...p, name: editName, price: parseFloat(editPrice) } : p);
+    onUpdate(newProducts);
+    setEditingId(null);
+  };
+
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col min-h-[400px] col-span-1 md:col-span-2 lg:col-span-4">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 border-b pb-2">Produits (Boutique)</h3>
-      <div className="flex-1 space-y-2 mb-8 overflow-y-auto pr-2">
+    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col min-h-[400px] col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4">
+      <h3 className="font-serif text-2xl text-slate-900 italic mb-6 border-b border-slate-50 pb-4">Boutique & Articles</h3>
+      <div className="flex-1 space-y-2 mb-6 overflow-y-auto pr-2 custom-scrollbar">
         {products.map((p: any) => (
-          <div key={p.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl group hover:bg-white border border-transparent hover:border-indigo-100 transition-all">
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-800">{p.name}</span>
-              <span className="text-xs text-slate-500">{p.price.toFixed(2)} €</span>
-            </div>
-            <button onClick={() => onUpdate(products.filter((i: any) => i.id !== p.id))} className="text-red-400 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 rounded-lg"><Trash2 size={14}/></button>
+          <div key={p.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl group hover:bg-white border border-transparent hover:border-emerald-100 transition-all shadow-sm">
+            {editingId === p.id ? (
+              <div className="flex gap-3 flex-1">
+                <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 bg-white px-4 py-2 rounded-xl border border-emerald-200 outline-none text-[11px] font-bold text-slate-800" />
+                <input value={editPrice} onChange={e => setEditPrice(e.target.value)} className="w-24 bg-white px-4 py-2 rounded-xl border border-emerald-200 outline-none text-[11px] font-bold text-slate-800" />
+                <button onClick={() => handleEditSave(p.id)} className="p-2 text-emerald-600 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"><CheckCircle2 size={18}/></button>
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-between min-w-0 pr-6">
+                <div className="flex flex-col">
+                  <span className="font-serif text-lg text-slate-800 italic leading-tight">{p.name}</span>
+                  <span className="text-[11px] text-emerald-600 font-bold tabular-nums mt-1">{p.price.toFixed(2)} €</span>
+                </div>
+                <button 
+                  onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price.toString()); }}
+                  className="p-2 text-slate-200 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-all bg-white rounded-xl shadow-sm border border-slate-50"
+                >
+                  <Edit size={14} />
+                </button>
+              </div>
+            )}
+            <button onClick={() => onUpdate(products.filter((i: any) => i.id !== p.id))} className="text-slate-200 hover:text-red-400 p-2 transition-colors"><Trash2 size={16}/></button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2 flex-wrap">
-        <input type="text" value={name} onChange={e => setName(e.target.value)} className="flex-1 min-w-[150px] px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none" placeholder="Nom du produit..." />
-        <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} className="w-24 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none" placeholder="Prix €" />
-        <button onClick={handleAdd} className="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg">+</button>
+      <div className="flex gap-3 pt-6 border-t border-slate-100">
+        <input type="text" value={name} onChange={e => setName(e.target.value)} className="flex-1 px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold uppercase outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all" placeholder="DÉSIGNATION DE L'ARTICLE..." />
+        <input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} className="w-32 px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold outline-none focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all" placeholder="PRIX €" />
+        <button onClick={handleAdd} className="px-8 bg-slate-900 text-white rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-xl hover:bg-emerald-700 transition-all active:scale-95">Ajouter au catalogue</button>
       </div>
     </div>
   );

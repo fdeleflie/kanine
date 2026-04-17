@@ -120,7 +120,9 @@ export const db = {
     try {
       const data = localStorage.getItem(KEYS.CLIENTS);
       const parsed = data ? JSON.parse(data) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      const clients = Array.isArray(parsed) ? parsed : [];
+      // Deduplicate by ID
+      return Array.from(new Map(clients.map(item => [item.id, item])).values());
     } catch { return []; }
   },
 
@@ -216,7 +218,9 @@ export const db = {
     try {
       const data = localStorage.getItem(KEYS.APPOINTMENTS);
       const parsed = data ? JSON.parse(data) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      const appts = Array.isArray(parsed) ? parsed : [];
+      // Deduplicate by ID
+      return Array.from(new Map(appts.map(item => [item.id, item])).values());
     } catch { return []; }
   },
 
@@ -285,13 +289,21 @@ export const db = {
   getInvoices: (): Invoice[] => {
     try {
       const data = localStorage.getItem(KEYS.INVOICES);
-      return data ? JSON.parse(data) : [];
+      const parsed = data ? JSON.parse(data) : [];
+      const invoices = Array.isArray(parsed) ? parsed : [];
+      // Deduplicate by ID
+      return Array.from(new Map(invoices.map(item => [item.id, item])).values());
     } catch { return []; }
   },
 
   saveInvoice: async (invoice: Invoice) => {
     const invoices = db.getInvoices();
-    invoices.push(invoice);
+    const index = invoices.findIndex(i => i.id === invoice.id);
+    if (index >= 0) {
+      invoices[index] = invoice;
+    } else {
+      invoices.push(invoice);
+    }
     localStorage.setItem(KEYS.INVOICES, JSON.stringify(invoices));
 
     const uid = db.getUid();
@@ -381,13 +393,21 @@ export const db = {
   getProductInvoices: (): any[] => {
     try {
       const data = localStorage.getItem(KEYS.PRODUCT_INVOICES);
-      return data ? JSON.parse(data) : [];
+      const parsed = data ? JSON.parse(data) : [];
+      const invoices = Array.isArray(parsed) ? parsed : [];
+      // Deduplicate by ID
+      return Array.from(new Map(invoices.map(item => [item.id, item])).values());
     } catch { return []; }
   },
 
   saveProductInvoice: async (invoice: any) => {
     const invoices = db.getProductInvoices();
-    invoices.push(invoice);
+    const index = invoices.findIndex(i => i.id === invoice.id);
+    if (index >= 0) {
+      invoices[index] = invoice;
+    } else {
+      invoices.push(invoice);
+    }
     localStorage.setItem(KEYS.PRODUCT_INVOICES, JSON.stringify(invoices));
 
     const uid = db.getUid();

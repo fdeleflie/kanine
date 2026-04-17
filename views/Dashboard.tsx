@@ -6,7 +6,10 @@ import {
   Calendar as CalendarIcon, 
   Euro, 
   TrendingUp,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trash2,
+  Plus,
+  LogIn
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -176,21 +179,27 @@ const Dashboard: React.FC<{ user?: any, onNavigateToClient: (id: string) => void
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex bg-slate-100 p-1 rounded-xl text-[10px] font-black uppercase">
-            <button onClick={() => setActivityType('all')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'all' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Global</button>
-            <button onClick={() => setActivityType('grooming')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'grooming' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Toilettage</button>
-            <button onClick={() => setActivityType('products')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'products' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Produits</button>
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-10">
+      {/* Header & Filters */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex bg-slate-50 p-1.5 rounded-xl text-[10px] font-bold border border-slate-100 shadow-inner">
+            <button onClick={() => setActivityType('all')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'all' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>Global</button>
+            <button onClick={() => setActivityType('grooming')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'grooming' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>Services</button>
+            <button onClick={() => setActivityType('products')} className={`px-4 py-2 rounded-lg transition-all ${activityType === 'products' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>Boutique</button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 uppercase">Année :</span>
+          <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100 shadow-inner">
+            <div className="flex text-[10px] font-bold">
+              <button onClick={() => setPeriodType('year')} className={`px-3 py-2 rounded-lg transition-all ${periodType === 'year' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400'}`}>Année</button>
+              <button onClick={() => setPeriodType('quarter')} className={`px-3 py-2 rounded-lg transition-all ${periodType === 'quarter' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400'}`}>Trim.</button>
+              <button onClick={() => setPeriodType('month')} className={`px-3 py-2 rounded-lg transition-all ${periodType === 'month' ? 'bg-white shadow-sm text-emerald-600 font-bold border border-emerald-50' : 'text-slate-400'}`}>Mois</button>
+            </div>
+            <div className="w-px h-4 bg-slate-200 mx-1"></div>
             <select 
               value={selectedYear} 
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="text-sm font-black text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border-none outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500"
+              className="text-[11px] font-bold text-slate-700 bg-transparent px-2 py-1 outline-none cursor-pointer tracking-tight"
             >
               {availableYears.map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -198,22 +207,16 @@ const Dashboard: React.FC<{ user?: any, onNavigateToClient: (id: string) => void
             </select>
           </div>
 
-          <div className="flex bg-slate-100 p-1 rounded-xl text-[10px] font-black uppercase">
-            <button onClick={() => setPeriodType('year')} className={`px-4 py-2 rounded-lg transition-all ${periodType === 'year' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Année</button>
-            <button onClick={() => setPeriodType('quarter')} className={`px-4 py-2 rounded-lg transition-all ${periodType === 'quarter' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Trimestre</button>
-            <button onClick={() => setPeriodType('month')} className={`px-4 py-2 rounded-lg transition-all ${periodType === 'month' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Mois</button>
-          </div>
-
           {periodType === 'quarter' && (
             <select 
               value={selectedQuarter} 
               onChange={(e) => setSelectedQuarter(parseInt(e.target.value))}
-              className="text-sm font-black text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border-none outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500"
+              className="text-[11px] font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 outline-none cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-100"
             >
-              <option value={1}>T1 (Jan-Mar)</option>
-              <option value={2}>T2 (Avr-Juin)</option>
-              <option value={3}>T3 (Juil-Sep)</option>
-              <option value={4}>T4 (Oct-Déc)</option>
+              <option value={1}>T1: JAN - MAR</option>
+              <option value={2}>T2: AVR - JUN</option>
+              <option value={3}>T3: JUL - SEP</option>
+              <option value={4}>T4: OCT - DEC</option>
             </select>
           )}
 
@@ -221,7 +224,7 @@ const Dashboard: React.FC<{ user?: any, onNavigateToClient: (id: string) => void
             <select 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="text-sm font-black text-slate-800 bg-slate-50 px-3 py-2 rounded-xl border-none outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500"
+              className="text-[11px] font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 outline-none cursor-pointer shadow-sm focus:ring-2 focus:ring-emerald-100 transition-all font-serif italic"
             >
               {['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'].map((m, i) => (
                 <option key={i} value={i}>{m}</option>
@@ -230,69 +233,100 @@ const Dashboard: React.FC<{ user?: any, onNavigateToClient: (id: string) => void
           )}
         </div>
 
-        <button onClick={exportFinancials} className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all text-sm w-full md:w-auto justify-center">
-          <FileSpreadsheet size={18} /> Exporter la période
+        <button onClick={exportFinancials} className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-200 hover:bg-emerald-700 transition-all text-xs tracking-tight w-full lg:w-auto justify-center group">
+          <FileSpreadsheet size={16} className="group-hover:scale-110 transition-transform" /> Exporter les données
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {activityType !== 'products' && (
           <>
-            <StatCard icon={<Users className="text-indigo-600" />} label="Base Clients" value={clients.length} color="bg-indigo-50" onClick={() => onNavigateToTab('clients')} />
-            <StatCard icon={<CalendarIcon className="text-purple-600" />} label="RDV prévus" value={appointments.filter(a => a.status === 'pending').length} color="bg-purple-50" onClick={() => onNavigateToTab('planning')} />
+            <StatCard icon={<Users size={18} className="text-emerald-600" />} label="Clients enregistrés" value={clients.length} color="bg-emerald-50" onClick={() => onNavigateToTab('clients')} />
+            <StatCard icon={<CalendarIcon size={18} className="text-emerald-600" />} label="RDV prévus" value={appointments.filter(a => a.status === 'pending').length} color="bg-emerald-50" onClick={() => onNavigateToTab('planning')} />
           </>
         )}
-        <StatCard icon={<Euro className="text-emerald-600" />} label="C.A. Période" value={`${periodRevenue.toFixed(2)}€`} color="bg-emerald-50" onClick={() => onNavigateToTab('invoices')} />
-        <StatCard icon={<TrendingUp className="text-orange-600" />} label="C.A. Annuel" value={`${yearRevenue.toFixed(2)}€`} color="bg-orange-50" onClick={() => onNavigateToTab('invoices')} />
+        <StatCard icon={<Euro size={18} className="text-emerald-600" />} label="Chiffre d'affaires" value={`${periodRevenue.toFixed(2)}€`} color="bg-emerald-50" onClick={() => onNavigateToTab('invoices')} />
+        <StatCard icon={<TrendingUp size={18} className="text-emerald-600" />} label="Total annuel" value={`${yearRevenue.toFixed(2)}€`} color="bg-emerald-50" onClick={() => onNavigateToTab('invoices')} />
       </div>
 
-      {activityType === 'products' ? (
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter mb-8">Liste des ventes produits</h3>
-          <div className="space-y-4">
-            {filteredInvoices.map((inv: any) => (
-              <div key={inv.id} onClick={() => onNavigateToClient(inv.clientId)} className="grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl items-center text-sm cursor-pointer hover:bg-indigo-50 transition-colors">
-                <span className="font-bold text-slate-800">{inv.clientName || 'Client inconnu'}</span>
-                <span className="text-slate-600">{inv.notes || 'Vente produit'}</span>
-                <span className="font-black text-emerald-600">{(inv.amount || 0).toFixed(2)}€</span>
-                <span className="text-xs text-slate-400">{inv.date}</span>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="font-serif text-xl text-slate-700">Progression de l'activité</h3>
+          </div>
+          <div className="flex-1 h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getChartData()}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} dy={12} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
+                <Tooltip 
+                  cursor={{fill: '#f0fdf4'}}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                  labelStyle={{ fontSize: '12px', fontWeight: 'bold', color: '#065f46' }}
+                />
+                <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                  {getChartData().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index === getChartData().length - 1 ? '#10b981' : '#f1f5f9'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Performance de la période</h3>
-            </div>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={getChartData()}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 800}} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 800}} />
-                  <Tooltip 
-                    cursor={{fill: '#f8fafc'}}
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '16px' }}
-                  />
-                  <Bar dataKey="total" fill="#6366f1" radius={[8, 8, 0, 0]} barSize={periodType === 'month' ? 20 : 50}>
-                    {getChartData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index === getChartData().length - 1 ? '#4f46e5' : '#e2e8f0'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
 
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col">
-            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter mb-6">Répartition Encaissements</h3>
-            <div className="space-y-4 flex-1">
-              <PaymentSplit label="Carte Bancaire" value={filteredInvoices.filter(i => i.paymentMethod === 'Carte').reduce((a,b) => a+b.amount, 0)} color="bg-indigo-500" total={periodRevenue} />
-              <PaymentSplit label="Espèces" value={filteredInvoices.filter(i => i.paymentMethod === 'Espèces').reduce((a,b) => a+b.amount, 0)} color="bg-emerald-500" total={periodRevenue} />
-              <PaymentSplit label="Chèques / Vir." value={filteredInvoices.filter(i => ['Chèque', 'Virement'].includes(i.paymentMethod)).reduce((a,b) => a+b.amount, 0)} color="bg-amber-500" total={periodRevenue} />
-            </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <h3 className="font-serif text-xl text-slate-700 mb-8">Modes de règlements</h3>
+          <div className="space-y-8 flex-1">
+            {['Carte', 'Espèces', 'Chèque', 'Virement'].map(method => {
+              const amount = filteredInvoices.filter(inv => inv.paymentMethod === method).reduce((acc, inv) => acc + inv.amount, 0);
+              const colors = { 'Carte': 'bg-emerald-500', 'Espèces': 'bg-teal-500', 'Chèque': 'bg-emerald-700', 'Virement': 'bg-emerald-300' };
+              return (
+                <PaymentSplit 
+                  key={method}
+                  label={method} 
+                  value={amount} 
+                  total={periodRevenue} 
+                  color={colors[method as keyof typeof colors]} 
+                />
+              );
+            })}
+          </div>
+          <div className="mt-8 pt-6 border-t border-slate-50">
+             <div className="flex justify-between items-end">
+                <div>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total période</p>
+                   <p className="text-3xl font-serif text-slate-900">{periodRevenue.toFixed(2)}€</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Status</p>
+                   <p className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">Clôturé</p>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      {activityType === 'products' && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 className="font-serif text-xl text-slate-700 mb-8">Dernières ventes</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredInvoices.map((inv: any) => (
+              <div key={inv.id} onClick={() => onNavigateToClient(inv.clientId)} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-white border border-transparent hover:border-emerald-100 transition-all group hover:shadow-md">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 group-hover:text-emerald-600 transition-colors shadow-sm">
+                      <LogIn size={18} />
+                   </div>
+                   <div>
+                      <p className="text-xs font-bold text-slate-800">{inv.clientName || 'Client inconnu'}</p>
+                      <p className="text-[10px] font-medium text-slate-400">{inv.date}</p>
+                   </div>
+                </div>
+                <div className="text-right">
+                   <p className="text-sm font-bold text-emerald-600">{inv.amount.toFixed(2)}€</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -301,11 +335,11 @@ const Dashboard: React.FC<{ user?: any, onNavigateToClient: (id: string) => void
 };
 
 const StatCard = ({ icon, label, value, color, onClick }: any) => (
-  <div onClick={onClick} className={`bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-1 ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}>
-    <div className={`p-4 rounded-2xl ${color}`}>{icon}</div>
+  <div onClick={onClick} className={`bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5 transition-all hover:border-emerald-100 hover:shadow-lg active:scale-95 group ${onClick ? 'cursor-pointer' : ''}`}>
+    <div className={`p-4 rounded-xl transition-all group-hover:scale-110 ${color}`}>{icon}</div>
     <div>
-      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight mb-1">{label}</p>
-      <p className="text-2xl font-black text-slate-900 leading-tight">{value}</p>
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 opacity-70 italic">{label}</p>
+      <p className="text-2xl font-serif text-slate-900 leading-none tracking-tight tabular-nums">{value}</p>
     </div>
   </div>
 );
@@ -314,11 +348,11 @@ const PaymentSplit = ({ label, value, color, total }: any) => {
   const pct = total > 0 ? (value / total) * 100 : 0;
   return (
     <div className="space-y-2">
-      <div className="flex justify-between text-xs font-black uppercase tracking-tighter">
+      <div className="flex justify-between text-xs font-medium">
         <span className="text-slate-500">{label}</span>
-        <span className="text-slate-900">{value.toFixed(2)}€</span>
+        <span className="text-slate-900 font-bold">{value.toFixed(2)}€</span>
       </div>
-      <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full transition-all duration-1000`} style={{ width: `${pct}%` }}></div>
       </div>
     </div>

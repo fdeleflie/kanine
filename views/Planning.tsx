@@ -10,10 +10,10 @@ import {
   Trash2, 
   Plus, 
   Euro, 
-  Printer,
   AlertTriangle,
   X,
-  Edit
+  Edit,
+  Printer
 } from 'lucide-react';
 
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -189,245 +189,155 @@ const Planning: React.FC<PlanningProps> = ({ onPrintInvoice, user }) => {
   while (calendarDays.length < 42) calendarDays.push(null);
 
   return (
-    <div className="space-y-6 flex flex-col h-full min-h-0 bg-slate-50/50 p-6 rounded-[2.5rem]">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex-wrap">
-          <button onClick={() => setView('day')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === 'day' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}>Jour</button>
-          <button onClick={() => setView('month')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === 'month' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}>Mois</button>
-          <button onClick={() => setView('year')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === 'year' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}>Année</button>
-          <button onClick={() => setView('upcoming')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === 'upcoming' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}>À Venir</button>
-          <button onClick={() => setView('past')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === 'past' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}>Passés</button>
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex items-center gap-6">
+          <div className="flex bg-slate-50 p-1 rounded-xl font-bold border border-slate-100 shadow-inner">
+            <button onClick={() => setView('day')} className={`px-5 py-2 rounded-lg text-xs transition-all ${view === 'day' ? 'bg-white shadow-sm text-emerald-600 border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>Jour</button>
+            <button onClick={() => setView('upcoming')} className={`px-5 py-2 rounded-lg text-xs transition-all ${view === 'upcoming' ? 'bg-white shadow-sm text-emerald-600 border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>À venir</button>
+            <button onClick={() => setView('past')} className={`px-5 py-2 rounded-lg text-xs transition-all ${view === 'past' ? 'bg-white shadow-sm text-emerald-600 border border-emerald-50' : 'text-slate-400 hover:text-slate-600'}`}>Historique</button>
+          </div>
+          
+          {view === 'day' && (
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  const d = new Date(currentDate);
+                  d.setDate(d.getDate() - 1);
+                  setCurrentDate(d);
+                }}
+                className="p-2 text-slate-400 hover:text-emerald-600 bg-slate-50 rounded-xl transition-colors border border-slate-100 shadow-sm"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <h2 className="font-serif text-xl text-slate-800 italic px-2">{new Date(dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+              <button 
+                onClick={() => {
+                  const d = new Date(currentDate);
+                  d.setDate(d.getDate() + 1);
+                  setCurrentDate(d);
+                }}
+                className="p-2 text-slate-400 hover:text-emerald-600 bg-slate-50 rounded-xl transition-colors border border-slate-100 shadow-sm"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4 bg-white px-6 py-2 rounded-2xl border border-slate-100 shadow-sm">
-            <button onClick={() => { 
-              const d = new Date(currentDate); 
-              d.setMonth(d.getMonth() - 1); 
-              setCurrentDate(d); 
-            }} className="p-2 hover:bg-slate-50 rounded-full transition-colors"><ChevronLeft size={20} /></button>
-            <div className="flex items-center gap-2">
-              <select 
-                value={currentDate.getMonth()} 
-                onChange={(e) => {
-                  const d = new Date(currentDate);
-                  d.setMonth(parseInt(e.target.value));
-                  setCurrentDate(d);
-                }}
-                className="text-sm font-black text-slate-900 uppercase tracking-tighter bg-transparent outline-none cursor-pointer appearance-none text-center"
-              >
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <option key={i} value={i}>
-                    {new Date(2000, i, 1).toLocaleDateString('fr-FR', { month: 'long' })}
-                  </option>
-                ))}
-              </select>
-              <select 
-                value={currentDate.getFullYear()} 
-                onChange={(e) => {
-                  const d = new Date(currentDate);
-                  d.setFullYear(parseInt(e.target.value));
-                  setCurrentDate(d);
-                }}
-                className="text-sm font-black text-slate-900 uppercase tracking-tighter bg-transparent outline-none cursor-pointer appearance-none text-center"
-              >
-                {Array.from({ length: 10 }).map((_, i) => {
-                  const year = new Date().getFullYear() - 5 + i;
-                  return <option key={year} value={year}>{year}</option>;
-                })}
-              </select>
-            </div>
-            <button onClick={() => { 
-              const d = new Date(currentDate); 
-              d.setMonth(d.getMonth() + 1); 
-              setCurrentDate(d); 
-            }} className="p-2 hover:bg-slate-50 rounded-full transition-colors"><ChevronRight size={20} /></button>
-          </div>
-          <button onClick={() => { setEditingAppt(null); setIsModalOpen(true); }} className="flex items-center gap-3 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100 hover:scale-105 active:scale-95 transition-all">
-            <Plus size={20} /> Nouveau RDV
-          </button>
-        </div>
+        <button 
+          onClick={() => {
+            setEditingAppt(null);
+            setIsModalOpen(true);
+          }}
+          className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs tracking-tight hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-xl shadow-slate-200"
+        >
+          <Plus size={16} /> Nouveau rendez-vous
+        </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {view === 'month' ? (
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-            <div className="calendar-grid border-b border-slate-50 bg-slate-50/50">
-              {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-                <div key={day} className="py-2 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{day}</div>
-              ))}
-            </div>
-            <div className="calendar-grid flex-1 overflow-y-auto">
-              {calendarDays.map((day, i) => {
-                const dayStr = day ? formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) : '';
-                const dayAppts = appointments.filter(a => a.date === dayStr);
-                const isToday = dayStr === formatDate(new Date());
-
+      {view === 'day' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit lg:col-span-1">
+            <h3 className="font-serif text-lg text-slate-700 mb-6">Agenda du jour</h3>
+            <div className="space-y-1">
+              {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00' , '18:00', '19:00'].map(t => {
+                const appts = appointments.filter(a => a.date === dateStr && a.time.startsWith(t.substring(0, 2)));
                 return (
-                  <div key={i} className={`min-w-0 min-h-[85px] p-1.5 border-r border-b border-slate-50 relative group transition-colors ${day ? 'hover:bg-slate-50/50' : 'bg-slate-50/20'}`}>
-                    {day && (
-                      <>
-                        <span className={`text-xs font-black ${isToday ? 'bg-indigo-600 text-white px-2 py-1 rounded-lg' : 'text-slate-300'} mb-2 inline-block`}>{day}</span>
-                        <div className="space-y-1">
-                          {dayAppts.map(appt => (
-                            <button key={appt.id} onClick={() => { setSelectedAppt(appt); setView('day'); setCurrentDate(new Date(appt.date)); }} className={`w-full text-left px-2 py-1.5 rounded-lg text-[10px] font-bold whitespace-normal break-words transition-all ${appt.status === 'invoiced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'}`}>
-                              {appt.time} • {appt.petName} • {(appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || 'Non défini')}
-                            </button>
-                          ))}
+                  <div key={t} className="flex gap-4 min-h-[50px] border-b border-slate-50 last:border-0 py-2">
+                    <span className="text-[10px] font-bold text-slate-300 w-10 py-1 tabular-nums">{t}</span>
+                    <div className="flex-1 space-y-2">
+                      {appts.map(a => (
+                        <div key={a.id} className="bg-emerald-50/50 border border-emerald-100/50 p-3 rounded-xl flex justify-between items-center group cursor-pointer hover:bg-white hover:border-emerald-200 transition-all hover:shadow-sm" onClick={() => { setEditingAppt(a); setIsModalOpen(true); }}>
+                          <div className="min-w-0">
+                             <p className="text-sm font-bold text-emerald-900">{a.petName}</p>
+                             <p className="text-[10px] text-emerald-500 font-medium tabular-nums">{a.time}</p>
+                          </div>
+                          <Edit size={12} className="text-emerald-300 opacity-0 group-hover:opacity-100 shrink-0" />
                         </div>
-                      </>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        ) : view === 'year' ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-10">
-            {Array.from({ length: 12 }).map((_, monthIndex) => {
-              const monthDate = new Date(currentDate.getFullYear(), monthIndex, 1);
-              const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long' });
-              const monthAppts = appointments.filter(a => {
-                const d = new Date(a.date);
-                return d.getFullYear() === currentDate.getFullYear() && d.getMonth() === monthIndex;
-              });
-              return (
-                <div key={monthIndex} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm cursor-pointer hover:border-indigo-300 transition-all" onClick={() => { setCurrentDate(monthDate); setView('month'); }}>
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">{monthName}</h3>
-                  <p className="text-2xl font-black text-indigo-600">{monthAppts.length}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Rendez-vous</p>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="max-w-4xl mx-auto space-y-4 pb-10">
+          
+          <div className="lg:col-span-2 space-y-4">
+            <h3 className="font-serif text-lg text-slate-700 px-2 italic">Détails des prestations</h3>
             {appointments
-              .filter(a => {
-                if (view === 'upcoming') return a.date >= formatDate(new Date());
-                if (view === 'past') return a.date < formatDate(new Date());
-                return a.date === dateStr; // 'day' view
-              })
-              .sort((a, b) => view === 'past' ? b.date.localeCompare(a.date) || b.time.localeCompare(a.time) : a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+              .filter(a => a.date === dateStr)
+              .sort((a, b) => a.time.localeCompare(b.time))
               .map(appt => (
-                <div key={appt.id} className="flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-3xl border border-slate-100 bg-white hover:border-indigo-100 transition-all shadow-sm group">
-                  <div className="w-24 text-center border-r border-slate-50 pr-6 shrink-0">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{new Date(appt.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                    <p className="text-xl font-black text-slate-800 tracking-tighter">{appt.time}</p>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <button 
-                        onClick={() => {
-                          setEditingAppt(appt);
-                          setIsModalOpen(true);
-                        }}
-                        className="text-lg font-black text-slate-900 uppercase italic tracking-tighter hover:text-indigo-600 transition-colors text-left"
-                      >
-                        {appt.petName}
-                      </button>
-                      <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase rounded-full tracking-widest">{(appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || 'Non défini')}</span>
-                    </div>
-                    <p className="text-xs text-slate-400 font-bold flex items-center gap-2 uppercase tracking-widest flex-wrap">
-                      <Clock size={12}/> {appt.duration} MIN • {appt.clientName}
-                      {(() => {
-                        const client = clients.find(c => c.id === appt.clientId);
-                        return client ? (
-                          <>
-                            {` • ${client.species} (${client.breed})`}
-                            {client.phone && ` • 📞 ${client.phone}`}
-                          </>
-                        ) : '';
-                      })()}
-                    </p>
-                    {appt.notes && <p className="text-sm text-slate-500 mt-2 italic">"{appt.notes}"</p>}
-                    
-                    <div className="flex gap-4 mt-4">
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest cursor-pointer hover:text-indigo-600 transition-colors">
-                            {appt.photoBefore ? 'Changer Avant' : '+ Photo Avant'}
-                            <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                const compressedBase64 = await compressImage(file);
-                                const updatedAppt = { ...appt, photoBefore: compressedBase64 };
-                                if (await db.saveAppointment(updatedAppt)) {
-                                  refreshData();
-                                } else {
-                                  setWarningState({
-                                    isOpen: true,
-                                    title: "Mémoire Saturée",
-                                    message: "Impossible de sauvegarder la photo. L'espace de stockage est plein."
-                                  });
-                                }
-                              } catch (error) {
-                                console.error("Erreur compression:", error);
-                                setWarningState({
-                                  isOpen: true,
-                                  title: "Erreur Photo",
-                                  message: "Impossible de traiter cette photo."
-                                });
-                              } finally {
-                                e.target.value = '';
-                              }
-                            }} />
-                          </label>
-                          {appt.photoBefore && (
-                            <button onClick={async () => {
-                              const updatedAppt = { ...appt, photoBefore: undefined };
-                              await db.saveAppointment(updatedAppt);
-                              refreshData();
-                            }} className="text-red-400 hover:text-red-600 p-1"><X size={12}/></button>
-                          )}
-                        </div>
-                        <PhotoThumbnail imageRef={appt.photoBefore} alt="Avant" />
+                <div key={appt.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-5 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#06281e] text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-inner tabular-nums">
+                        {appt.time}
                       </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-2">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest cursor-pointer hover:text-indigo-600 transition-colors">
-                            {appt.photoAfter ? 'Changer Après' : '+ Photo Après'}
-                            <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                const compressedBase64 = await compressImage(file);
-                                const updatedAppt = { ...appt, photoAfter: compressedBase64 };
-                                if (await db.saveAppointment(updatedAppt)) {
-                                  refreshData();
-                                } else {
-                                  setWarningState({
-                                    isOpen: true,
-                                    title: "Mémoire Saturée",
-                                    message: "Impossible de sauvegarder la photo. L'espace de stockage est plein."
-                                  });
-                                }
-                              } catch (error) {
-                                console.error("Erreur compression:", error);
-                                setWarningState({
-                                  isOpen: true,
-                                  title: "Erreur Photo",
-                                  message: "Impossible de traiter cette photo."
-                                });
-                              } finally {
-                                e.target.value = '';
-                              }
-                            }} />
-                          </label>
-                          {appt.photoAfter && (
-                            <button onClick={async () => {
-                              const updatedAppt = { ...appt, photoAfter: undefined };
-                              await db.saveAppointment(updatedAppt);
-                              refreshData();
-                            }} className="text-red-400 hover:text-red-600 p-1"><X size={12}/></button>
-                          )}
-                        </div>
-                        <PhotoThumbnail imageRef={appt.photoAfter} alt="Après" />
+                      <div>
+                        <h4 className="font-serif text-xl text-slate-900 leading-tight">{appt.petName}</h4>
+                        <p className="text-xs font-medium text-slate-400">{appt.clientName}</p>
                       </div>
                     </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => { setEditingAppt(appt); setIsModalOpen(true); }} className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"><Edit size={18}/></button>
+                      <button onClick={() => {
+                        setConfirmState({
+                          isOpen: true,
+                          title: "Supprimer",
+                          message: "Voulez-vous supprimer ce rendez-vous ?",
+                          onConfirm: async () => {
+                            await db.deleteAppointment(appt.id);
+                            refreshData();
+                            setConfirmState(prev => ({ ...prev, isOpen: false }));
+                          }
+                        });
+                      }} className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={18}/></button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+
+                  <div className="flex flex-wrap gap-2">
+                     <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-100">
+                        {(appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || 'Service')}
+                     </span>
+                     <span className="px-3 py-1 bg-slate-50 text-slate-500 text-[10px] font-bold rounded-full border border-slate-100">
+                        {appt.duration} MIN
+                     </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 rounded-2xl p-3 flex flex-col items-center shadow-inner border border-slate-100/50">
+                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 cursor-pointer hover:text-emerald-600 transition-colors">
+                          Avant le soin
+                          <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                             const file = e.target.files?.[0]; if (!file) return;
+                             const compressed = await compressImage(file);
+                             await db.saveAppointment({ ...appt, photoBefore: compressed });
+                             refreshData();
+                          }} />
+                       </label>
+                       <div className="w-full aspect-square bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                          <PhotoThumbnail imageRef={appt.photoBefore} />
+                       </div>
+                    </div>
+                    <div className="bg-slate-50 rounded-2xl p-3 flex flex-col items-center shadow-inner border border-slate-100/50">
+                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 cursor-pointer hover:text-emerald-600 transition-colors">
+                          Après le soin
+                          <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                             const file = e.target.files?.[0]; if (!file) return;
+                             const compressed = await compressImage(file);
+                             await db.saveAppointment({ ...appt, photoAfter: compressed });
+                             refreshData();
+                          }} />
+                       </label>
+                       <div className="w-full aspect-square bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                          <PhotoThumbnail imageRef={appt.photoAfter} />
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
                     {appt.status !== 'invoiced' ? (
                       <button onClick={() => { 
                         setSelectedAppt(appt); 
@@ -436,91 +346,131 @@ const Planning: React.FC<PlanningProps> = ({ onPrintInvoice, user }) => {
                         setInvoiceService((appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || ''));
                         setIsCustomService(false);
                         setIsInvoiceModalOpen(true); 
-                      }} className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 shadow-lg shadow-emerald-50 transition-all">
-                        <Euro size={16} /> Facturer
+                      }} className="w-full flex items-center justify-center gap-3 py-3.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
+                        <Euro size={16} /> Facturer la prestation
                       </button>
                     ) : (
-                      <div className="flex items-center gap-2">
-                         <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-2 rounded-xl uppercase border border-emerald-100">Payé</span>
-                         <button onClick={() => { const inv = db.getInvoices().find(i => i.appointmentId === appt.id); if(inv) onPrintInvoice?.(inv); }} className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-colors"><Printer size={18} /></button>
+                      <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-100 transition-all">
+                         <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-tight">Règlement complété</span>
+                         <button onClick={() => { const inv = db.getInvoices().find(i => i.appointmentId === appt.id); if(inv) onPrintInvoice?.(inv); }} className="p-2 bg-white text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Printer size={18} /></button>
                       </div>
                     )}
-                    <button onClick={() => {
-                      setEditingAppt(appt);
-                      setIsModalOpen(true);
-                    }} className="p-3 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all"><Edit size={20}/></button>
-                    <button onClick={() => { 
-                      setConfirmState({
-                        isOpen: true,
-                        title: "Supprimer ce RDV",
-                        message: "Voulez-vous vraiment supprimer ce rendez-vous ?",
-                        onConfirm: () => {
-                          db.deleteAppointment(appt.id);
-                          refreshData();
-                        }
-                      });
-                    }} className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"><Trash2 size={20}/></button>
                   </div>
                 </div>
-              ))
-            }
+              ))}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto space-y-3 pb-10">
+          {appointments
+            .filter(a => {
+              if (view === 'upcoming') return a.date >= formatDate(new Date());
+              if (view === 'past') return a.date < formatDate(new Date());
+              return true;
+            })
+            .sort((a, b) => view === 'past' ? b.date.localeCompare(a.date) || b.time.localeCompare(a.time) : a.date.localeCompare(b.date) || a.time.localeCompare(b.time))
+            .map(appt => (
+              <div key={appt.id} className="flex flex-col md:flex-row md:items-center gap-6 p-5 rounded-2xl border border-slate-100 bg-white hover:border-emerald-100 transition-all shadow-sm group relative overflow-hidden active:scale-[0.99] cursor-pointer" onClick={() => { setEditingAppt(appt); setIsModalOpen(true); }}>
+                <div className="w-20 text-center border-r border-slate-50 pr-5 shrink-0">
+                  <p className="font-serif text-[11px] text-emerald-600 italic mb-0.5">{new Date(appt.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}</p>
+                  <p className="text-lg font-bold text-slate-800 tabular-nums">{appt.time}</p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h4 className="font-serif text-lg text-slate-900 leading-none">{appt.petName}</h4>
+                    <span className="px-2.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] font-bold rounded-full border border-slate-100 truncate max-w-[150px]">
+                      {(appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || 'N/A')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium flex items-center gap-2 tracking-tight flex-wrap lowercase italic">
+                    <Clock size={10}/> {appt.duration}min • {appt.clientName}
+                    {(() => {
+                      const client = clients.find(c => c.id === appt.clientId);
+                      return client ? ` • ${client.species} (${client.breed})` : '';
+                    })()}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-3 shrink-0" onClick={e => e.stopPropagation()}>
+                  {appt.status !== 'invoiced' ? (
+                    <button onClick={() => { 
+                      setSelectedAppt(appt); 
+                      setInvoiceAmount('50'); 
+                      setInvoiceService((appt.services && Array.isArray(appt.services)) ? appt.services.join(', ') : ((appt as any).service || ''));
+                      setIsCustomService(false);
+                      setIsInvoiceModalOpen(true); 
+                    }} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-50 transition-all">
+                      <Euro size={12} /> Facturer
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                       <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 italic">Payé</span>
+                       <button onClick={() => { const inv = db.getInvoices().find(i => i.appointmentId === appt.id); if(inv) onPrintInvoice?.(inv); }} className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"><Printer size={18} /></button>
+                    </div>
+                  )}
+                  <button onClick={() => { setEditingAppt(appt); setIsModalOpen(true); }} className="p-2.5 bg-slate-50 text-slate-300 rounded-xl hover:text-emerald-600 hover:bg-emerald-50 transition-all"><Edit size={18}/></button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
 
       {/* Modal Nouveau/Modifier RDV */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden border border-white/20">
-            <form key={editingAppt?.id || 'new'} onSubmit={handleSaveAppt} className="p-10 space-y-8">
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+            <form key={editingAppt?.id || 'new'} onSubmit={handleSaveAppt} className="p-8 space-y-6">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">{editingAppt ? 'Modifier Rendez-vous' : 'Nouveau Rendez-vous'}</h2>
-                <button type="button" onClick={() => { setIsModalOpen(false); setEditingAppt(null); }} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors"><X size={24}/></button>
+                <h2 className="font-serif text-2xl text-slate-800 italic">{editingAppt ? 'Modifier le rendez-vous' : 'Prendre rendez-vous'}</h2>
+                <button type="button" onClick={() => { setIsModalOpen(false); setEditingAppt(null); }} className="p-2 hover:bg-slate-50 rounded-full transition-colors"><X size={24}/></button>
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Choisir un Client</label>
-                  <select name="client" required defaultValue={editingAppt?.clientId || ''} className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none focus:ring-4 ring-indigo-50 transition-all">
-                    <option value="">Sélectionner...</option>
-                    {clients.map(c => <option key={c.id} value={c.id}>{c.name} ({c.ownerName})</option>)}
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Choix du client</label>
+                  <select name="client" required defaultValue={editingAppt?.clientId || ''} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none focus:ring-2 ring-emerald-100 transition-all shadow-inner">
+                    <option value="">Sélectionner un client...</option>
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.name} • {c.ownerName}</option>)}
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Date</label>
-                    <input type="date" name="date" defaultValue={editingAppt?.date || dateStr} required className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none" />
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Date</label>
+                    <input type="date" name="date" defaultValue={editingAppt?.date || dateStr} required className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none shadow-inner" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Heure</label>
-                    <input type="time" name="time" defaultValue={editingAppt?.time || "09:00"} required className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Soins</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {config.services.map(s => (
-                      <label key={s} className="flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-indigo-50">
-                        <input type="checkbox" name="services" value={s} defaultChecked={editingAppt?.services?.includes(s)} className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                        <span className="text-xs font-bold text-slate-700">{s}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Durée (minutes)</label>
-                    <input type="number" name="duration" defaultValue={editingAppt?.duration || "60"} step="15" className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none" />
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Heure</label>
+                    <input type="time" name="time" defaultValue={editingAppt?.time || "09:00"} required className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none shadow-inner" />
                   </div>
                 </div>
 
-                <textarea name="notes" defaultValue={editingAppt?.notes || ''} placeholder="Notes particulières..." className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium h-24 outline-none"></textarea>
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Services</label>
+                    <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                      {config.services.map(s => (
+                        <label key={s} className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-white hover:border-emerald-200 transition-all shadow-sm">
+                          <input type="checkbox" name="services" value={s} defaultChecked={editingAppt?.services?.includes(s)} className="w-4 h-4 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-200" />
+                          <span className="text-xs font-semibold text-slate-700">{s}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Durée (minutes)</label>
+                    <input type="number" name="duration" defaultValue={editingAppt?.duration || "60"} step="15" className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none shadow-inner" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Notes ou particularités</label>
+                  <textarea name="notes" defaultValue={editingAppt?.notes || ''} placeholder="Observations..." className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium h-24 outline-none shadow-inner"></textarea>
+                </div>
               </div>
 
-              <button type="submit" className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-2xl shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98]">
-                {editingAppt ? 'Enregistrer les modifications' : 'Confirmer le Rendez-vous'}
+              <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm tracking-widest shadow-2xl shadow-slate-200 hover:bg-emerald-700 transition-all active:scale-[0.98]">
+                {editingAppt ? 'Sauvegarder les modifications' : 'Enregistrer le rendez-vous'}
               </button>
             </form>
           </div>
@@ -529,52 +479,55 @@ const Planning: React.FC<PlanningProps> = ({ onPrintInvoice, user }) => {
 
       {/* Modal Facturation Rapide */}
       {isInvoiceModalOpen && selectedAppt && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden">
-             <div className="p-10 space-y-8">
-                <div className="flex justify-between items-center">
-                   <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">Émettre Facture</h2>
-                   <button onClick={() => setIsInvoiceModalOpen(false)} className="p-3 hover:bg-slate-100 rounded-2xl"><X size={24}/></button>
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
+           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+             <div className="p-8 space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                   <h2 className="font-serif text-2xl text-slate-800 italic">Facturation</h2>
+                   <button onClick={() => setIsInvoiceModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full"><X size={24}/></button>
                 </div>
                 
-                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Prestation pour</p>
-                   <p className="text-xl font-black text-slate-900">{selectedAppt.petName} ({selectedAppt.clientName})</p>
+                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-center">
+                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Prestation pour</p>
+                   <p className="font-serif text-xl text-emerald-900 italic">{selectedAppt.petName}</p>
                 </div>
 
-                <div className="space-y-6">
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Date de Facturation</label>
-                      <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none" />
+                <div className="space-y-5">
+                   <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Date de la facture</label>
+                      <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none" />
                    </div>
 
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Type de Prestation</label>
+                   <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Libellé du service</label>
                       {isCustomService ? (
                         <div className="flex gap-2">
-                          <input type="text" value={invoiceService} onChange={e => setInvoiceService(e.target.value)} placeholder="Saisir la prestation..." className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none" autoFocus />
-                          <button onClick={() => { setIsCustomService(false); setInvoiceService((selectedAppt.services && Array.isArray(selectedAppt.services)) ? selectedAppt.services.join(', ') : ((selectedAppt as any).service || '')); }} className="px-4 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase hover:bg-slate-200 transition-all">Liste</button>
+                          <input type="text" value={invoiceService} onChange={e => setInvoiceService(e.target.value)} placeholder="..." className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none shadow-inner" autoFocus />
+                          <button onClick={() => { setIsCustomService(false); setInvoiceService((selectedAppt.services && Array.isArray(selectedAppt.services)) ? selectedAppt.services.join(', ') : ((selectedAppt as any).service || '')); }} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px]">RETOUR</button>
                         </div>
                       ) : (
                         <div className="flex gap-2">
-                          <select value={invoiceService} onChange={e => setInvoiceService(e.target.value)} className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-800 outline-none">
+                          <select value={invoiceService} onChange={e => setInvoiceService(e.target.value)} className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl font-medium text-sm text-slate-800 outline-none shadow-inner">
                             {config.services.map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
-                          <button onClick={() => { setIsCustomService(true); setInvoiceService(''); }} className="px-4 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase hover:bg-slate-200 transition-all">Autre</button>
+                          <button onClick={() => { setIsCustomService(true); setInvoiceService(''); }} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px]">AUTRE</button>
                         </div>
                       )}
                    </div>
 
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Montant TTC (€)</label>
-                      <input type="number" value={invoiceAmount} onChange={e => setInvoiceAmount(e.target.value)} className="w-full px-8 py-5 bg-indigo-50 border-2 border-indigo-100 rounded-[2rem] font-black text-3xl text-indigo-600 text-center outline-none" />
+                   <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Montant TTC</label>
+                      <div className="relative">
+                        <input type="number" value={invoiceAmount} onChange={e => setInvoiceAmount(e.target.value)} className="w-full px-5 py-5 bg-emerald-50 border border-emerald-100 rounded-2xl font-serif text-4xl text-emerald-700 text-center outline-none shadow-sm" />
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-serif text-2xl text-emerald-300">€</span>
+                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Mode de Règlement</label>
-                      <div className="grid grid-cols-2 gap-3">
+                   <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Mode de règlement</label>
+                      <div className="grid grid-cols-2 gap-2">
                          {['Carte', 'Espèces', 'Chèque', 'Virement'].map(m => (
-                           <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all ${paymentMethod === m ? 'bg-slate-900 text-white border-slate-900 shadow-xl' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>
+                           <button key={m} onClick={() => setPaymentMethod(m as any)} className={`py-3 rounded-xl text-[10px] font-bold uppercase border transition-all ${paymentMethod === m ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:border-emerald-100 shadow-sm'}`}>
                              {m}
                            </button>
                          ))}
@@ -582,8 +535,8 @@ const Planning: React.FC<PlanningProps> = ({ onPrintInvoice, user }) => {
                    </div>
                 </div>
 
-                <button onClick={handleConfirmInvoice} className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-black text-xl uppercase tracking-widest shadow-2xl shadow-emerald-100 hover:bg-emerald-700 transition-all">
-                   Valider & Générer PDF
+                <button onClick={handleConfirmInvoice} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm tracking-widest shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-[0.98]">
+                   Générer la facture
                 </button>
              </div>
            </div>
