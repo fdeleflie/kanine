@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/toilettage-pro---smart-grooming-management/',
+      base: '/kanine/',
       server: {
         port: 3000,
         host: '0.0.0.0',
