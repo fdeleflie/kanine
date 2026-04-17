@@ -1,0 +1,114 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Document ID: userId (matches request.auth.uid)
+    // Fields:
+    //   - uid: string (required) - matching auth.uid
+    //   - email: string (required) - user email
+    //   - config: map (optional) - user specific app configuration
+    //   - role: string (required) - 'user' or 'admin'
+    //
+    // Collection: /users/{userId}/clients
+    // Document ID: clientId
+    // Fields:
+    //   - id: string
+    //   - uid: string
+    //   - name: string
+    //   - ... (other client fields)
+    //
+    // Collection: /users/{userId}/appointments
+    // Document ID: apptId
+    // Fields:
+    //   - id: string
+    //   - uid: string
+    //   - ... (other appt fields)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "fdeleflie@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidClient(data) {
+      return data.keys().hasAll(['id', 'uid', 'name']) &&
+             data.id is string &&
+             data.uid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100;
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['id', 'uid', 'date', 'time', 'clientId']) &&
+             data.id is string &&
+             data.uid == request.auth.uid &&
+             data.date is string &&
+             data.time is string;
+    }
+
+    function isValidInvoice(data) {
+      return data.keys().hasAll(['id', 'uid', 'number', 'date', 'clientId']) &&
+             data.id is string &&
+             data.uid == request.auth.uid &&
+             data.number is string &&
+             data.date is string;
+    }
+
+    function isValidProductInvoice(data) {
+      return data.keys().hasAll(['id', 'uid', 'number', 'date', 'clientId']) &&
+             data.id is string &&
+             data.uid == request.auth.uid &&
+             data.number is string &&
+             data.date is string;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && 
+                    request.resource.data.uid == request.auth.uid &&
+                    (request.resource.data.role == 'user' || isAdmin());
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      
+      // Subcollections
+      match /clients/{clientId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) && isValidClient(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+      
+      match /appointments/{apptId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) && isValidAppointment(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+      
+      match /invoices/{invId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) && isValidInvoice(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+      
+      match /productInvoices/{pInvId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId) && isValidProductInvoice(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+  }
+}

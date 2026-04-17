@@ -1,0 +1,7 @@
+{
+  "name": "Toilettage Pro - Smart Grooming Management",
+  "description": "A comprehensive professional grooming management system featuring client tracking, smart scheduling, automated invoicing, and AI-powered pet care insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

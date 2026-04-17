@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User specific configuration and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "config": { "$ref": "Configuration" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      },
+      "required": ["uid", "email"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Client and pet information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "species": { "type": "string" },
+        "breed": { "type": "string" },
+        "coatType": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "sex": { "type": "string", "enum": ["M", "F"] },
+        "weight": { "type": "number" },
+        "ownerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "particularities": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" },
+        "photoProfile": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isProfessional": { "type": "boolean" }
+      },
+      "required": ["id", "uid", "name"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Grooming appointment details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "petName": { "type": "string" },
+        "services": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" },
+        "duration": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "completed", "cancelled", "invoiced"] },
+        "photoBefore": { "type": "string" },
+        "photoAfter": { "type": "string" }
+      },
+      "required": ["id", "uid", "date", "time", "clientId"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Grooming service invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "number": { "type": "string" },
+        "date": { "type": "string" },
+        "clientId": { "type": "string" },
+        "petName": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "appointmentId": { "type": "string" },
+        "notes": { "type": "string" },
+        "items": { "type": "array" },
+        "dueDate": { "type": "string" },
+        "isProfessional": { "type": "boolean" }
+      },
+      "required": ["id", "uid", "number", "date", "clientId"]
+    },
+    "ProductInvoice": {
+      "title": "ProductInvoice",
+      "description": "Product sale invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "number": { "type": "string" },
+        "date": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "uid", "number", "date", "clientId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and configuration"
+    },
+    "/users/{userId}/clients/{clientId}": {
+      "schema": "Client",
+      "description": "User's client directory"
+    },
+    "/users/{userId}/appointments/{apptId}": {
+      "schema": "Appointment",
+      "description": "User's appointment calendar"
+    },
+    "/users/{userId}/invoices/{invId}": {
+      "schema": "Invoice",
+      "description": "User's grooming invoices"
+    },
+    "/users/{userId}/productInvoices/{pInvId}": {
+      "schema": "ProductInvoice",
+      "description": "User's product invoices"
+    }
+  }
+}
